@@ -1,0 +1,37 @@
+---
+name: Lint all yaml files
+description: "Runs yamllint with default set of rules"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+    - id: yaml-lint
+      uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c  # v3.1.1
+      with:
+        strict: false  # Don't fail for warnings
+        config_data: |
+            extends: default
+            ignore: |
+              *.md
+              CODEOWNERS
+              *.ini
+            # Copied from .yamllint file in sdk-zephyr
+            rules:
+              line-length:
+                max: 100
+              comments:
+                min-spaces-from-content: 1
+              indentation:
+                spaces: 2
+                indent-sequences: consistent
+              document-start:
+                present: false
+              truthy:
+                check-keys: false
+
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      if: failure()
+      with:
+        name: yamllint-logfile
+        path: ${{ steps.yaml-lint.outputs.logfile }}
